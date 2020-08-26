@@ -1,4 +1,4 @@
-package ta.v08;
+package ta.before;
 
 import java.util.Scanner;
 
@@ -16,6 +16,7 @@ public class TriangleAreaApp {
 		
 		String smallest_id = null;
 		double smallest_area = 0.0;
+		boolean first_time = true;
 		
 		while (sc.hasNext()) {
 			String id = sc.next();
@@ -29,22 +30,11 @@ public class TriangleAreaApp {
 			double cx = sc.nextDouble();
 			double cy = sc.nextDouble();
 
-			/*
-			System.out.println("Triangle: " + id);
-			System.out.println("A: (" + ax + ", " + ay + ")");
-			System.out.println("B: (" + bx + ", " + by + ")");
-			System.out.println("C: (" + cx + ", " + cy + ")");
-			System.out.println("----");
-			*/
-			
-			Triangle t = new Triangle(ax, ay, bx, by, cx, cy);
-			
-			String category = t.category();
+			String category = triangle_category(ax, ay, bx, by, cx, cy);
 
 			System.out.println("Triangle " + id + " is " + category);
 			
-			double area = t.area();
-			
+			double area = triangle_area(ax, ay, bx, by, cx, cy);
 
 			if (smallest_id == null) {
 				smallest_area = area;
@@ -53,6 +43,28 @@ public class TriangleAreaApp {
 				smallest_area = area;
 				smallest_id = id;
 			}
+
+			/* Another way to set up smallest area for the first triangle:
+
+			if (first_time) {
+				first_time = false;
+				smallest_area = area;
+				smallest_id = id;
+			} else if (area < smallest_area) {
+				smallest_area = area;
+				smallest_id = id;
+			}
+			*/
+
+			/* Equivalent to first way of setting up smallest area
+			 * that relies on boolean operator short circuit.
+			 
+			if ((smallest_id == null) || (area < smallest_area)) {
+				smallest_area = area;
+				smallest_id = id;
+			}
+			*/
+			
 			
 			if (category.equals("equilateral")) {
 				num_equilateral++;
@@ -65,7 +77,7 @@ public class TriangleAreaApp {
 				scalene_area_sum += area;
 			}			
 		}
-		
+
 		sc.close();
 		
 		if (num_equilateral > 0) {
@@ -90,8 +102,47 @@ public class TriangleAreaApp {
 		
 	}
 
+	static String triangle_category(
+			double ax, double ay,
+			double bx, double by,
+			double cx, double cy) {
+
+		double side_ab = point_distance(ax, ay, bx, by);
+		double side_bc = point_distance(bx, by, cx, cy);
+		double side_ca = point_distance(cx, cy, ax, ay);
+
+		if (close_enough(side_ab, side_bc) &&
+				close_enough(side_bc, side_ca)) {
+			return "equilateral";
+		} else if (close_enough(side_ab, side_bc) ||
+				close_enough(side_ab, side_ca) ||
+				close_enough(side_bc, side_ca)) {
+			return "isosceles";
+		} else {
+			return "scalene";
+		}
+	}
+
+	static double triangle_area(
+			double ax, double ay,
+			double bx, double by,
+			double cx, double cy) {
+		double side_ab = point_distance(ax, ay, bx, by);
+		double side_bc = point_distance(bx, by, cx, cy);
+		double side_ca = point_distance(cx, cy, ax, ay);
+
+		double s = (side_ab+side_bc+side_ca)/2.0;
+		return Math.sqrt(s*(s-side_ab)*(s-side_bc)*(s-side_ca));		
+	}
+
+
+	static boolean close_enough(double a, double b) {
+		// Epsilon bound test for side distances.
+		return Math.abs(a-b) < 0.001;
+	}
+
 	static double point_distance(double x1, double y1, double x2, double y2) {
 		return Math.sqrt(((x1-x2)*(x1-x2))+((y1-y2)*(y1-y2)));
 	}
-	
+
 }
